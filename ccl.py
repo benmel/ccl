@@ -15,7 +15,7 @@ class BinaryImage:
 	def ccl_first(self):
 		for i in xrange(self.rows):
 			for j in xrange(self.cols):
-				current = Pixel(self.labeled_image.get_pixel(i,j))
+				current = self.labeled_image.get_pixel(i,j)
 				if current.is_not_label(self.background):
 					left,upper = self.get_neighbors(i,j)
 					self.label_pixel(current, left, upper)	
@@ -24,7 +24,7 @@ class BinaryImage:
 	def ccl_second(self):
 		for i in xrange(self.rows):
 			for j in xrange(self.cols):
-				current = Pixel(self.labeled_image.get_pixel(i,j))
+				current = self.labeled_image.get_pixel(i,j)
 				if current.is_not_label(self.background):	
 					new_value = self.equiv_table[current.label]		
 					self.labeled_image.label_pixel(i, j, new_value)		
@@ -33,12 +33,12 @@ class BinaryImage:
 		if i <= 0:
 			left = Pixel(self.background)
 		else:
-			left = Pixel(self.labeled_image.get_pixel(i,j-1))
+			left = self.labeled_image.get_pixel(i,j-1)
 
 		if j <= 0:
 			upper = Pixel(self.background)
 		else:
-			upper = Pixel(self.labeled_image.get_pixel(i-1,j))
+			upper = self.labeled_image.get_pixel(i-1,j)
 		
 		return (left, upper)
 
@@ -97,7 +97,7 @@ class LabeledImage:
 		self.matrix = matrix
 
 	def get_pixel(self, row, col):
-		return self.matrix.item(row,col)
+		return Pixel(self.matrix.item(row,col))
 
 	def label_pixel(self, row, col, label):
 		self.matrix.itemset((row,col), label)	
