@@ -72,11 +72,14 @@ class BinaryImage:
 			self.equiv_table[key] = new_value
 
 	def print_vals(self):
-		# print self.equiv_table.items()
-		print self.labeled_image.matrix[50,0:]
+		print self.equiv_table.items()
+		# print self.labeled_image.matrix[50,0:]
 
 	def plot(self):
 		self.labeled_image.plot()
+
+	def save(self):
+		self.labeled_image.save()	
 	
 
 class LabeledImage:
@@ -106,9 +109,15 @@ class LabeledImage:
 		return (left, upper)	
 
 	def plot(self):
-		plt.imshow(self.matrix)
-		plt.show()	
+		plt.imshow(self.matrix, interpolation = 'nearest')
+		plt.xticks([]), plt.yticks([])
+		plt.show()
 
+	def save(self):
+		plt.imshow(self.matrix, interpolation = 'nearest')
+		plt.xticks([]), plt.yticks([])
+		plt.savefig('out.png', bbox_inches='tight')		
+	
 
 class Pixel:
 	def __init__(self, label, row, col):
@@ -134,8 +143,7 @@ def main():
 	binary_image.ccl_first()
 	binary_image.simplify_equiv_table()
 	binary_image.ccl_second()
-	# bi.print_vals()
-	binary_image.plot()
+	binary_image.save()
 
 if __name__ == "__main__":
 	main()
