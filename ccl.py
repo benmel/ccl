@@ -7,7 +7,7 @@ class BinaryImage:
 	def __init__(self, img):
 		ret,thresh = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
 		self.labeled_image = LabeledImage(thresh)
-		self.rows,self.cols = self.labeled_image.matrix.shape
+		self.rows,self.cols = self.labeled_image.shape()
 		self.background = 0
 		self.label_counter = 0
 		self.equiv_table = {}
@@ -82,6 +82,9 @@ class BinaryImage:
 class LabeledImage:
 	def __init__(self, matrix):
 		self.matrix = matrix
+
+	def shape(self):
+		return self.matrix.shape	
 
 	def get_pixel(self, row, col):
 		return Pixel(self.matrix.item(row,col), row, col)
