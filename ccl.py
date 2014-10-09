@@ -18,18 +18,18 @@ class BinaryImage:
 				current = self.labeled_image.get_pixel(i,j)
 				if current.is_not_label(self.background):
 					left,upper = self.labeled_image.get_neighbors(i,j)
-					self.label_pixel(current, left, upper)	
-				self.labeled_image.label_pixel(i, j, current.label)
+					self.determine_label(current, left, upper)	
+				self.labeled_image.label_pixel(current)
 
 	def ccl_second(self):
 		for i in xrange(self.rows):
 			for j in xrange(self.cols):
 				current = self.labeled_image.get_pixel(i,j)
 				if current.is_not_label(self.background):	
-					new_value = self.equiv_table[current.label]		
-					self.labeled_image.label_pixel(i, j, new_value)		
+					new_pixel = Pixel(self.equiv_table[current.label], i, j)
+					self.labeled_image.label_pixel(new_pixel)		
 
-	def label_pixel(self, current, left, upper):
+	def determine_label(self, current, left, upper):
 		if left.label == upper.label and left.is_not_label(self.background) and upper.is_not_label(self.background):
 			current.label = upper.label
 		elif left.label != upper.label and not (left.is_not_label(self.background) and upper.is_not_label(self.background)):
@@ -84,10 +84,10 @@ class LabeledImage:
 		self.matrix = matrix
 
 	def get_pixel(self, row, col):
-		return Pixel(self.matrix.item(row,col))
+		return Pixel(self.matrix.item(row,col), row, col)
 
-	def label_pixel(self, row, col, label):
-		self.matrix.itemset((row,col), label)
+	def label_pixel(self, pixel):
+		self.matrix.itemset((pixel.row,pixel.col), pixel.label)
 
 	def get_neighbors(self, row, col):
 		if row <= 0:
@@ -104,7 +104,9 @@ class LabeledImage:
 
 
 class Pixel:
-	def __init__(self, label):
+	def __init__(self, label, row, col):
+		self.row = row
+		self.col = col
 		self.label = label
 
 	def is_label(self, label):
