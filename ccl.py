@@ -5,45 +5,31 @@ from matplotlib import pyplot as plt
 
 class BinaryImage:
 	def __init__(self, img):
-		self.img = img
-		ret,self.thresh = cv2.threshold(self.img,127,255,cv2.THRESH_BINARY)
-		self.rows,self.cols = self.thresh.shape
+		ret,thresh = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
+		self.labeled_image = LabeledImage(thresh)
+		self.rows,self.cols = self.labeled_image.shape()
 		self.background = 0
 		self.label_counter = 0
 		self.equiv_table = {}
-		self.labeled_image = LabeledImage(self.rows, self.cols, self.background)
 
 	def ccl_first(self):
 		for i in xrange(self.rows):
 			for j in xrange(self.cols):
-				current = Pixel(self.thresh.item(i,j))
+				current = self.labeled_image.get_pixel(i,j)
 				if current.is_not_label(self.background):
-					left,upper = self.get_neighbors(i,j)
-					self.label_pixel(current, left, upper)
-				self.labeled_image.label_pixel(i, j, current.label)
+					left,upper = self.labeled_image.get_neighbors(i,j)
+					self.determine_label(current, left, upper)	
+				self.labeled_image.label_pixel(current)
 
 	def ccl_second(self):
 		for i in xrange(self.rows):
 			for j in xrange(self.cols):
-				current = Pixel(self.labeled_image.get_pixel(i,j))
+				current = self.labeled_image.get_pixel(i,j)
 				if current.is_not_label(self.background):	
-					new_value = self.equiv_table[current.label]	
-					self.labeled_image.label_pixel(i, j, new_value)		
+					new_pixel = Pixel(self.equiv_table[current.label], i, j)
+					self.labeled_image.label_pixel(new_pixel)		
 
-	def get_neighbors(self, i, j):
-		if i <= 0:
-			left = Pixel(self.background)
-		else:
-			left = Pixel(self.labeled_image.get_pixel(i,j-1))
-
-		if j <= 0:
-			upper = Pixel(self.background)
-		else:
-			upper = Pixel(self.labeled_image.get_pixel(i-1,j))
-		
-		return (left, upper)
-
-	def label_pixel(self, current, left, upper):
+	def determine_label(self, current, left, upper):
 		if left.label == upper.label and left.is_not_label(self.background) and upper.is_not_label(self.background):
 			current.label = upper.label
 		elif left.label != upper.label and not (left.is_not_label(self.background) and upper.is_not_label(self.background)):
@@ -89,23 +75,45 @@ class BinaryImage:
 		# print self.equiv_table.items()
 		print self.labeled_image.matrix[50,0:]
 
-	def plot_graph(self):
-		plt.imshow(self.labeled_image.matrix)
-		plt.show()	
-		
+	def plot(self):
+		self.labeled_image.plot()
+	
+
 class LabeledImage:
-	def __init__(self, rows, cols, value):
-		self.matrix = value*np.ones((rows,cols), dtype=np.int)
+	def __init__(self, matrix):
+		self.matrix = matrix
+
+	def shape(self):
+		return self.matrix.shape	
 
 	def get_pixel(self, row, col):
-		return self.matrix.item(row,col)
+		return Pixel(self.matrix.item(row,col), row, col)
 
-	def label_pixel(self, row, col, label):
-		self.matrix.itemset((row,col), label)	
+	def label_pixel(self, pixel):
+		self.matrix.itemset((pixel.row,pixel.col), pixel.label)
+
+	def get_neighbors(self, row, col):
+		if row <= 0:
+			left = Pixel(self.background)
+		else:
+			left = self.get_pixel(row,col-1)
+
+		if col <= 0:
+			upper = Pixel(self.background)
+		else:
+			upper = self.get_pixel(row-1,col)
+		
+		return (left, upper)	
+
+	def plot(self):
+		plt.imshow(self.matrix)
+		plt.show()	
 
 
 class Pixel:
-	def __init__(self, label):
+	def __init__(self, label, row, col):
+		self.row = row
+		self.col = col
 		self.label = label
 
 	def is_label(self, label):
@@ -122,12 +130,13 @@ class Pixel:
 						
 def main():
 	img = cv2.imread(sys.argv[1],0)
-	bi = BinaryImage(img)
-	bi.ccl_first()
-	bi.simplify_equiv_table()
-	bi.ccl_second()
+	binary_image = BinaryImage(img)
+	binary_image.ccl_first()
+	binary_image.simplify_equiv_table()
+	binary_image.ccl_second()
 	# bi.print_vals()
-	bi.plot_graph()
+	binary_image.plot()
 
 if __name__ == "__main__":
-	main()	
+	main()
+		
