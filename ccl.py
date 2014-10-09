@@ -75,10 +75,10 @@ class BinaryImage:
 		# print self.equiv_table.items()
 		print self.labeled_image.matrix[50,0:]
 
-	def plot_graph(self):
-		plt.imshow(self.labeled_image.matrix)
-		plt.show()	
-		
+	def plot(self):
+		self.labeled_image.plot()
+	
+
 class LabeledImage:
 	def __init__(self, matrix):
 		self.matrix = matrix
@@ -105,6 +105,10 @@ class LabeledImage:
 		
 		return (left, upper)	
 
+	def plot(self):
+		plt.imshow(self.matrix)
+		plt.show()	
+
 
 class Pixel:
 	def __init__(self, label, row, col):
@@ -126,12 +130,13 @@ class Pixel:
 						
 def main():
 	img = cv2.imread(sys.argv[1],0)
-	bi = BinaryImage(img)
-	bi.ccl_first()
-	bi.simplify_equiv_table()
-	bi.ccl_second()
+	binary_image = BinaryImage(img)
+	binary_image.ccl_first()
+	binary_image.simplify_equiv_table()
+	binary_image.ccl_second()
 	# bi.print_vals()
-	bi.plot_graph()
+	binary_image.plot()
 
 if __name__ == "__main__":
-	main()	
+	main()
+		
