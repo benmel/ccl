@@ -5,21 +5,20 @@ from matplotlib import pyplot as plt
 
 class BinaryImage:
 	def __init__(self, img):
-		self.img = img
-		ret,self.thresh = cv2.threshold(self.img,127,255,cv2.THRESH_BINARY)
-		self.rows,self.cols = self.thresh.shape
+		ret,thresh = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
+		self.labeled_image = LabeledImage(thresh)
+		self.rows,self.cols = self.labeled_image.matrix.shape
 		self.background = 0
 		self.label_counter = 0
 		self.equiv_table = {}
-		self.labeled_image = LabeledImage(self.rows, self.cols, self.background)
 
 	def ccl_first(self):
 		for i in xrange(self.rows):
 			for j in xrange(self.cols):
-				current = Pixel(self.thresh.item(i,j))
+				current = Pixel(self.labeled_image.get_pixel(i,j))
 				if current.is_not_label(self.background):
 					left,upper = self.get_neighbors(i,j)
-					self.label_pixel(current, left, upper)
+					self.label_pixel(current, left, upper)	
 				self.labeled_image.label_pixel(i, j, current.label)
 
 	def ccl_second(self):
@@ -27,7 +26,7 @@ class BinaryImage:
 			for j in xrange(self.cols):
 				current = Pixel(self.labeled_image.get_pixel(i,j))
 				if current.is_not_label(self.background):	
-					new_value = self.equiv_table[current.label]	
+					new_value = self.equiv_table[current.label]		
 					self.labeled_image.label_pixel(i, j, new_value)		
 
 	def get_neighbors(self, i, j):
@@ -94,8 +93,8 @@ class BinaryImage:
 		plt.show()	
 		
 class LabeledImage:
-	def __init__(self, rows, cols, value):
-		self.matrix = value*np.ones((rows,cols), dtype=np.int)
+	def __init__(self, matrix):
+		self.matrix = matrix
 
 	def get_pixel(self, row, col):
 		return self.matrix.item(row,col)
