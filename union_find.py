@@ -56,23 +56,4 @@ class UnionFind:
 			if r != heaviest:
 				self.weights[heaviest] += self.weights[r]
 				self.parents[r] = heaviest
-
-def main():
-	uf = UnionFind()
-	uf[1]
-	uf[2]
-	uf[3]
-	uf[4]
-	uf[5]
-	uf.union(1,2)
-	uf.union(2,3)
-	uf.union(5,6)
-
-	print uf[1]
-	print uf[2]
-	print uf[3]
-	print uf[5]
-	print uf[6]
-
-if __name__ == "__main__":
-	main()                
+				            
