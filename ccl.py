@@ -7,9 +7,9 @@ from union_find import *
 class BinaryImage:
 	def __init__(self, img):
 		ret,thresh = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
-		self.labeled_image = LabeledImage(thresh)
-		self.rows,self.cols = self.labeled_image.shape()
 		self.background = 0
+		self.labeled_image = LabeledImage(thresh, self.background)
+		self.rows,self.cols = self.labeled_image.shape()
 		self.label_counter = 0
 		self.uf = UnionFind()
 
@@ -56,8 +56,9 @@ class BinaryImage:
 	
 
 class LabeledImage:
-	def __init__(self, matrix):
+	def __init__(self, matrix, background):
 		self.matrix = matrix
+		self.background = background
 
 	def shape(self):
 		return self.matrix.shape	
@@ -73,12 +74,10 @@ class LabeledImage:
 			left = Pixel(self.background)
 		else:
 			left = self.get_pixel(row,col-1)
-
 		if col <= 0:
 			upper = Pixel(self.background)
 		else:
 			upper = self.get_pixel(row-1,col)
-		
 		return (left, upper)	
 
 	def plot(self):
@@ -94,9 +93,9 @@ class LabeledImage:
 
 class Pixel:
 	def __init__(self, label, row, col):
+		self.label = label
 		self.row = row
 		self.col = col
-		self.label = label
 
 	def is_label(self, label):
 		if self.label == label:
