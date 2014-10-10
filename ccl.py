@@ -28,7 +28,21 @@ class BinaryImage:
 				current = self.labeled_image.get_pixel(i,j)
 				if current.is_not_label(self.background):	
 					current.label = self.find(current)
-					self.labeled_image.label_pixel(current)		
+					self.labeled_image.label_pixel(current)
+
+	def size_filter(self):
+		for i in xrange(self.rows):
+			for j in xrange(self.cols):
+				current = self.labeled_image.get_pixel(i,j)
+				if current.is_label(self.background):
+					surr = self.labeled_image.get_surrounding(i,j)
+					other_bg_px = False
+					for px in surr:
+						if px.is_label(self.background):
+							other_bg_px = True
+					if not other_bg_px and len(surr) > 0:
+						current.label = surr[0].label
+						self.labeled_image.label_pixel(current)		
 
 	def determine_label(self, current, left, upper):
 		if left.label == upper.label and left.is_not_label(self.background) and upper.is_not_label(self.background):
@@ -78,7 +92,21 @@ class LabeledImage:
 			upper = Pixel(self.background)
 		else:
 			upper = self.get_pixel(row-1,col)
-		return (left, upper)	
+		return (left, upper)
+
+	def get_surrounding(self, row, col):
+		locations = [[row+1,col],[row+1,col-1],[row+1,col+1],
+								 [row-1,col],[row-1,col-1],[row-1,col+1],
+								 [row,col-1],[row,col+1]]
+		surr = []
+		for loc in locations:
+			row_temp = loc[0]
+			col_temp = loc[1]
+			row_max,col_max = self.shape()
+			if row_temp >= 0 and col_temp >= 0 and row_temp < row_max and col_temp < col_max:
+				px = self.get_pixel(row_temp,col_temp)
+				surr.append(px)
+		return surr		
 
 	def plot(self):
 		plt.imshow(self.matrix, interpolation = 'nearest')
@@ -112,9 +140,10 @@ class Pixel:
 def main():
 	img = cv2.imread(sys.argv[1],0)
 	binary_image = BinaryImage(img)
+	binary_image.size_filter()
 	binary_image.ccl_first()
 	binary_image.ccl_second()
-	binary_image.save()
+	binary_image.plot()
 
 if __name__ == "__main__":
 	main()
