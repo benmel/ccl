@@ -167,7 +167,7 @@ class Pixel:
 						
 def main():
 	def usage():
-		print 'ccl.py [-sf] -i <input_file> -o <output_file>'
+		print 'ccl.py [-sf] -i <input_file> [-o <output_file>]'
 
 	input_file = None
 	output_file = None
@@ -190,7 +190,7 @@ def main():
 		elif opt in ("-o", "--output"):
 			output_file = arg
 
-	if not input_file or not output_file:
+	if not input_file:
 		usage()
 		sys.exit()
 
@@ -200,7 +200,11 @@ def main():
 		ccl.size_filter()
 	ccl.first_pass()
 	ccl.second_pass()
-	ccl.save(output_file)
+	
+	if output_file:
+		ccl.save(output_file)
+	else:
+		ccl.plot()		
 	print "Number of labels: " + str(ccl.num_labels())
 
 if __name__ == "__main__":
