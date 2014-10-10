@@ -2,15 +2,16 @@ import sys
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+from union_find import *
 
 class BinaryImage:
 	def __init__(self, img):
 		ret,thresh = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
-		self.labeled_image = LabeledImage(thresh)
-		self.rows,self.cols = self.labeled_image.shape()
 		self.background = 0
+		self.labeled_image = LabeledImage(thresh, self.background)
+		self.rows,self.cols = self.labeled_image.shape()
 		self.label_counter = 0
-		self.equiv_table = {}
+		self.uf = UnionFind()
 
 	def ccl_first(self):
 		for i in xrange(self.rows):
@@ -19,15 +20,15 @@ class BinaryImage:
 				if current.is_not_label(self.background):
 					left,upper = self.labeled_image.get_neighbors(i,j)
 					self.determine_label(current, left, upper)	
-				self.labeled_image.label_pixel(current)
+					self.labeled_image.label_pixel(current)
 
 	def ccl_second(self):
 		for i in xrange(self.rows):
 			for j in xrange(self.cols):
 				current = self.labeled_image.get_pixel(i,j)
 				if current.is_not_label(self.background):	
-					new_pixel = Pixel(self.equiv_table[current.label], i, j)
-					self.labeled_image.label_pixel(new_pixel)		
+					current.label = self.find(current)
+					self.labeled_image.label_pixel(current)		
 
 	def determine_label(self, current, left, upper):
 		if left.label == upper.label and left.is_not_label(self.background) and upper.is_not_label(self.background):
@@ -36,44 +37,16 @@ class BinaryImage:
 			current.label = max(left.label, upper.label)
 		elif left.label != upper.label and left.is_not_label(self.background) and upper.is_not_label(self.background):
 		  current.label = min(left.label, upper.label)
-		  self.set_equiv_table(left, upper)
+		  self.union(left, upper)
 		else:
 			self.label_counter += 1
-			self.equiv_table[self.label_counter] = self.label_counter
 			current.label = self.label_counter
 
-	def set_equiv_table(self, left, upper):
-		larger = max(left.label, upper.label)
-		smaller = min(left.label, upper.label)
-		self.equiv_table[larger] = smaller
+	def union(self, left, upper):
+		self.uf.union(left.label, upper.label)
 
-	def simplify_equiv_table(self):
-		for key in self.equiv_table.keys():
-			current_key = key
-			current_value = self.equiv_table[current_key]
-			while current_key > current_value:
-				if self.equiv_table[current_value] < current_value:
-					current_key = current_value
-					current_value = self.equiv_table[current_key]
-				else:
-					current_key = current_value	
-			self.equiv_table[key] = current_value	
-
-		values = list(set(self.equiv_table.values()))
-		values.sort()
-
-		new_values = {}
-		for idx, val in enumerate(values):
-			new_values[val] = idx+1
-
-		for key in self.equiv_table.keys():
-			old_value = self.equiv_table[key]
-			new_value = new_values[old_value]
-			self.equiv_table[key] = new_value
-
-	def print_vals(self):
-		print self.equiv_table.items()
-		# print self.labeled_image.matrix[50,0:]
+	def find(self, current):
+		return self.uf[current.label]			
 
 	def plot(self):
 		self.labeled_image.plot()
@@ -83,8 +56,9 @@ class BinaryImage:
 	
 
 class LabeledImage:
-	def __init__(self, matrix):
+	def __init__(self, matrix, background):
 		self.matrix = matrix
+		self.background = background
 
 	def shape(self):
 		return self.matrix.shape	
@@ -100,12 +74,10 @@ class LabeledImage:
 			left = Pixel(self.background)
 		else:
 			left = self.get_pixel(row,col-1)
-
 		if col <= 0:
 			upper = Pixel(self.background)
 		else:
 			upper = self.get_pixel(row-1,col)
-		
 		return (left, upper)	
 
 	def plot(self):
@@ -121,9 +93,9 @@ class LabeledImage:
 
 class Pixel:
 	def __init__(self, label, row, col):
+		self.label = label
 		self.row = row
 		self.col = col
-		self.label = label
 
 	def is_label(self, label):
 		if self.label == label:
@@ -141,7 +113,6 @@ def main():
 	img = cv2.imread(sys.argv[1],0)
 	binary_image = BinaryImage(img)
 	binary_image.ccl_first()
-	binary_image.simplify_equiv_table()
 	binary_image.ccl_second()
 	binary_image.save()
 
