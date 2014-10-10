@@ -1,4 +1,5 @@
 import sys
+import getopt
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
@@ -50,8 +51,8 @@ class CCL:
 		elif left.label != upper.label and not (left.is_not_label(self.background) and upper.is_not_label(self.background)):
 			current.label = max(left.label, upper.label)
 		elif left.label != upper.label and left.is_not_label(self.background) and upper.is_not_label(self.background):
-		  current.label = min(left.label, upper.label)
-		  self.union(left, upper)
+			current.label = min(left.label, upper.label)
+			self.union(left, upper)
 		else:
 			self.label_counter += 1
 			current.label = self.label_counter
@@ -65,8 +66,8 @@ class CCL:
 	def plot(self):
 		self.labeled_image.plot()
 
-	def save(self):
-		self.labeled_image.save()	
+	def save(self, output_file):
+		self.labeled_image.save(output_file)	
 	
 
 class LabeledImage:
@@ -113,10 +114,10 @@ class LabeledImage:
 		plt.xticks([]), plt.yticks([])
 		plt.show()
 
-	def save(self):
+	def save(self, output_file):
 		plt.imshow(self.matrix, interpolation = 'nearest')
 		plt.xticks([]), plt.yticks([])
-		plt.savefig('out.png', bbox_inches='tight')		
+		plt.savefig(output_file, bbox_inches='tight')		
 	
 
 class Pixel:
@@ -138,12 +139,40 @@ class Pixel:
 			return False
 						
 def main():
-	img = cv2.imread(sys.argv[1],0)
+	def usage():
+		print 'ccl.py [-sf] -i <input_file> -o <output_file>'
+
+	input_file = None
+	output_file = None
+	size_filter = False
+
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], "hsfi:o:", ["help", "size_filter", "input=", "output="])
+	except getopt.GetoptError:
+		usage()
+		sys.exit(2)
+	for opt, arg in opts:
+		if opt in ('-h', '--help'):
+			usage()
+			sys.exit()
+		elif opt in ('-s', '-sf'):
+			size_filter = True	
+		elif opt in ("-i", "--input"):
+			input_file = arg
+		elif opt in ("-o", "--output"):
+			output_file = arg
+
+	if not input_file or not output_file:
+		usage()
+		sys.exit()
+
+	img = cv2.imread(input_file,0)
 	ccl = CCL(img)
-	ccl.size_filter()
+	if size_filter:
+		ccl.size_filter()
 	ccl.first_pass()
 	ccl.second_pass()
-	ccl.plot()
+	ccl.save(output_file)
 
 if __name__ == "__main__":
 	main()
