@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from union_find import *
 
-class BinaryImage:
+class CCL:
 	def __init__(self, img):
 		ret,thresh = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
 		self.background = 0
@@ -13,7 +13,7 @@ class BinaryImage:
 		self.label_counter = 0
 		self.uf = UnionFind()
 
-	def ccl_first(self):
+	def first_pass(self):
 		for i in xrange(self.rows):
 			for j in xrange(self.cols):
 				current = self.labeled_image.get_pixel(i,j)
@@ -22,7 +22,7 @@ class BinaryImage:
 					self.determine_label(current, left, upper)	
 					self.labeled_image.label_pixel(current)
 
-	def ccl_second(self):
+	def second_pass(self):
 		for i in xrange(self.rows):
 			for j in xrange(self.cols):
 				current = self.labeled_image.get_pixel(i,j)
@@ -139,11 +139,11 @@ class Pixel:
 						
 def main():
 	img = cv2.imread(sys.argv[1],0)
-	binary_image = BinaryImage(img)
-	binary_image.size_filter()
-	binary_image.ccl_first()
-	binary_image.ccl_second()
-	binary_image.plot()
+	ccl = CCL(img)
+	ccl.size_filter()
+	ccl.first_pass()
+	ccl.second_pass()
+	ccl.plot()
 
 if __name__ == "__main__":
 	main()
