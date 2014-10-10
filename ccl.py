@@ -61,7 +61,10 @@ class CCL:
 		self.uf.union(left.label, upper.label)
 
 	def find(self, current):
-		return self.uf[current.label]			
+		return self.uf[current.label]
+
+	def num_labels(self):
+		return len(set(self.uf.parents.values()))				
 
 	def plot(self):
 		self.labeled_image.plot()
@@ -173,6 +176,7 @@ def main():
 	ccl.first_pass()
 	ccl.second_pass()
 	ccl.save(output_file)
+	print "Number of labels: " + str(ccl.num_labels())
 
 if __name__ == "__main__":
 	main()
