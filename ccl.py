@@ -167,7 +167,7 @@ class Pixel:
 						
 def main():
 	def usage():
-		print 'ccl.py [-sf] -i <input_file> [-o <output_file>]'
+		print 'python ccl.py [-sf] -i <input_file> [-o <output_file>]'
 
 	input_file = None
 	output_file = None
